@@ -1,0 +1,8 @@
+pommysł - dostarczać sygnał, który bedzie uśrednionym sygnałem ze wszystkich
+dostępnych sygnałów w danej klasie, licząc na to, że będzie to wystarczająca ilosc. 
+równie dobrze jednak można stworzyć jeden, zajebiście dług ciąg sygnału, na którym będize się uczyła moja sieć
+ponieważ wszystko i tak zależy ciągłości x
+tylko że obawiam się, że sygnały będą rozłożone w różny, nierównomierny sposób
+więc przez to jedynie co bym mógł zrobić było by stworzenie uśrednionej falki a następnie próba porównania jak z porównywaniem patrona.
+
+:
