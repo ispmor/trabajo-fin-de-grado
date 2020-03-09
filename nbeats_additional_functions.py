@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 import torch
 from torch.nn import functional as F
 
-CHECKPOINT_NAME = "normal_nbeats_checkpoint.th"
-
 
 def plot_scatter(*args, **kwargs):
     plt.plot(*args, **kwargs)
@@ -39,27 +37,27 @@ def batcher(dataset, batch_size, infinite=False):
             break
 
 
-def load(model, optimiser):
-    if os.path.exists(CHECKPOINT_NAME):
-        checkpoint = torch.load(CHECKPOINT_NAME)
+def load(checkpoint_name, model, optimiser):
+    if os.path.exists(checkpoint_name):
+        checkpoint = torch.load(checkpoint_name)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimiser.load_state_dict(checkpoint['optimiser_state_dict'])
         grad_step = checkpoint['grad_step']
-        print(f'Restored checkpoint from {CHECKPOINT_NAME}.')
+        print(f'Restored checkpoint from {checkpoint_name}.')
         return grad_step
     return 0
 
 
-def save(model, optimiser, grad_step):
+def save(checkpoint_name, model, optimiser, grad_step):
     torch.save({
         'grad_step': grad_step,
         'model_state_dict': model.state_dict(),
         'optimiser_state_dict': optimiser.state_dict()
-    }, CHECKPOINT_NAME)
+    }, checkpoint_name)
 
 
-def train_100_grad_steps(data, device, net, optimiser, test_losses):
-    global_step = load(net, optimiser)
+def train_100_grad_steps(checkpoint_name, data, device, net, optimiser, test_losses):
+    global_step = load(checkpoint_name, net, optimiser)
     for x_train_batch, y_train_batch in data:
         global_step += 1
         optimiser.zero_grad()
@@ -72,13 +70,13 @@ def train_100_grad_steps(data, device, net, optimiser, test_losses):
             print(f'grad_step = {str(global_step).zfill(6)}, tr_loss = {loss.item():.6f}, te_loss = {test_losses[-1]:.6f}')
         if global_step > 0 and global_step % 100 == 0:
             with torch.no_grad():
-                save(net, optimiser, global_step)
+                save(checkpoint_name, net, optimiser, global_step)
             break
 
 
-def fit(net, optimiser, data_generator, on_save_callback, device, max_grad_steps=10000):
+def fit(checkpoint_name, net, optimiser, data_generator, on_save_callback, device, max_grad_steps=10000):
     print('--- Training ---')
-    initial_grad_step = load(net, optimiser)
+    initial_grad_step = load(checkpoint_name, net, optimiser)
     for grad_step, (x, target) in enumerate(data_generator):
         grad_step += initial_grad_step
         optimiser.zero_grad()
@@ -90,7 +88,7 @@ def fit(net, optimiser, data_generator, on_save_callback, device, max_grad_steps
         print(f'grad_step = {str(grad_step).zfill(6)}, loss = {loss.item():.6f}')
         if grad_step % 1000 == 0 or (grad_step < 1000 and grad_step % 100 == 0):
             with torch.no_grad():
-                save(net, optimiser, grad_step)
+                save(checkpoint_name, net, optimiser, grad_step)
                 if on_save_callback is not None:
                     on_save_callback(x, target, grad_step)
         if grad_step > max_grad_steps:
