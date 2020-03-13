@@ -1,5 +1,3 @@
-import locale
-
 import pytest
 
 from pandas._config import detect_console_encoding
@@ -52,11 +50,11 @@ def test_detect_console_encoding_fallback_to_locale(monkeypatch, encoding):
     "std,locale",
     [
         ["ascii", "ascii"],
-        ["ascii", locale.Error],
+        ["ascii", Exception],
         [AttributeError, "ascii"],
-        [AttributeError, locale.Error],
+        [AttributeError, Exception],
         [IOError, "ascii"],
-        [IOError, locale.Error],
+        [IOError, Exception],
     ],
 )
 def test_detect_console_encoding_fallback_to_default(monkeypatch, std, locale):

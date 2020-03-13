@@ -1,5 +1,5 @@
 import os
-
+import wfdb
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -115,3 +115,84 @@ def eval_test(backcast_length, forecast_length, net, norm_constant, test_losses,
     plt.show()
     
     '''
+
+
+def get_avg_score(net, x_test, y_test):
+    net.eval()
+    _, forecast = net(torch.tensor(x_test, dtype=torch.float))
+    singular_loss = F.mse_loss(forecast, torch.tensor(y_test, dtype=torch.float)).item()
+    return singular_loss
+
+
+def one_file_training_data(data_dir, file, forecast_length, backcast_length, batch_size):
+    normal_signal_data = []
+    normal_signal_x = []
+
+    x = wfdb.io.rdsamp(data_dir + file[:-4])
+    normal_signal_data.append(x[0][:, 3])
+    normal_signal_x.append(range(0, int(x[1]['sig_len'])))
+
+    normal_signal_data = [y for sublist in normal_signal_data for y in sublist]
+    normal_signal_x = [y for sublist in normal_signal_x for y in sublist]
+    normal_signal_data = np.array(normal_signal_data)
+    normal_signal_x = np.array(normal_signal_x)
+    normal_signal_data.flatten()
+    normal_signal_x.flatten()
+
+    norm_constant = np.max(normal_signal_data)
+    print(norm_constant)
+    normal_signal_data = normal_signal_data / norm_constant  # leak to the test set here.
+
+    x_train_batch, y = [], []
+    for i in range(backcast_length, len(normal_signal_data) - forecast_length):
+        x_train_batch.append(normal_signal_data[i - backcast_length:i])
+        y.append(normal_signal_data[i:i + forecast_length])
+
+    x_train_batch = np.array(x_train_batch)  # [..., 0]
+    y = np.array(y)  # [..., 0]
+
+    if len(x_train_batch) > 30000:
+        x_train_batch = x_train_batch[0:int(len(x_train_batch) / 4)]
+        y = y[0:int(len(y) / 4)]
+
+    c = int(len(x_train_batch) * 0.8)
+    x_train, y_train = x_train_batch[:c], y[:c]
+    x_test, y_test = x_train_batch[c:], y[c:]
+    print(x_train.shape, x_test.shape)
+    print(y_train.shape, y_test.shape)
+    data = data_generator(x_train, y_train, batch_size)
+
+    return data, x_test, y_test, norm_constant
+
+
+def organise_data(data, data_header, forecast_length, backcast_length, batch_size):
+    normal_signal_data = []
+    normal_signal_x = []
+
+    normal_signal_data.append(data[3])
+    normal_signal_x.append(range(0, int(data_header[0].split(' ')[3])))
+
+    normal_signal_data = [y for sublist in normal_signal_data for y in sublist]
+    normal_signal_x = [y for sublist in normal_signal_x for y in sublist]
+    normal_signal_data = np.array(normal_signal_data)
+    normal_signal_x = np.array(normal_signal_x)
+    normal_signal_data.flatten()
+    normal_signal_x.flatten()
+
+    norm_constant = np.max(normal_signal_data)
+    print(norm_constant)
+    normal_signal_data = normal_signal_data / norm_constant  # leak to the test set here.
+
+    x, y = [], []
+    for i in range(backcast_length, len(normal_signal_data) - forecast_length):
+        x.append(normal_signal_data[i - backcast_length:i])
+        y.append(normal_signal_data[i:i + forecast_length])
+
+    x = np.array(x)  # [..., 0]
+    y = np.array(y)  # [..., 0]
+
+    if len(x) > 30000:
+        x = x[0:int(len(x) / 2)]
+        y = y[0:int(len(y) / 2)]
+
+    return x, y
