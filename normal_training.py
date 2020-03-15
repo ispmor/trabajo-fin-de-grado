@@ -49,7 +49,7 @@ for folder_name in dirs:
 
             iteration += 1
             print(iteration)
-            if iteration > 8:
+            if iteration > 30:
                 break
 
             data, x_test, y_test, norm_constant = naf.one_file_training_data(actual_class_dir, file, forecast_length,
