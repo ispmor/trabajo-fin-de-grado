@@ -16,7 +16,15 @@ for directory_name in d:
 dirs = dirs[1:]
 print(dirs)
 
-device = torch.device('cpu')
+#Juan
+
+#device = torch.device('cuda') if not args.disable_cuda and torch.cuda.is_available() else torch.device('cpu')
+device = torch.device('cuda')
+torch.set_default_tensor_type('torch.cuda.FloatTensor')
+
+#input = input.cuda()
+#target = target.cuda() 
+
 forecast_length = 500
 backcast_length = 3 * forecast_length
 batch_size = 256

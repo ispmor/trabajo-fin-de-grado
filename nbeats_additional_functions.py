@@ -39,11 +39,11 @@ def batcher(dataset, batch_size, infinite=False):
 
 def load(checkpoint_name, model, optimiser):
     if os.path.exists(checkpoint_name):
-        checkpoint = torch.load(checkpoint_name)
+        checkpoint = torch.load(checkpoint_name, map_location=torch.device('cpu'))
         model.load_state_dict(checkpoint['model_state_dict'])
         optimiser.load_state_dict(checkpoint['optimiser_state_dict'])
         grad_step = checkpoint['grad_step']
-        print(f'Restored checkpoint from {checkpoint_name}.')
+        #print(f'Restored checkpoint from {checkpoint_name}.')
         return grad_step
     return 0
 
@@ -66,8 +66,9 @@ def train_100_grad_steps(checkpoint_name, data, device, net, optimiser, test_los
         loss = F.mse_loss(forecast, torch.tensor(y_train_batch, dtype=torch.float).to(device))
         loss.backward()
         optimiser.step()
-        if global_step % 30 == 0:
-            print(f'grad_step = {str(global_step).zfill(6)}, tr_loss = {loss.item():.6f}, te_loss = {test_losses[-1]:.6f}')
+        #Juan
+        #if global_step % 30 == 0:
+            #print(f'grad_step = {str(global_step).zfill(6)}, tr_loss = {loss.item():.6f}, te_loss = {test_losses[-1]:.6f}')
         if global_step > 0 and global_step % 100 == 0:
             with torch.no_grad():
                 save(checkpoint_name, net, optimiser, global_step)
@@ -75,7 +76,7 @@ def train_100_grad_steps(checkpoint_name, data, device, net, optimiser, test_los
 
 
 def fit(checkpoint_name, net, optimiser, data_generator, on_save_callback, device, max_grad_steps=10000):
-    print('--- Training ---')
+    #print('--- Training ---')
     initial_grad_step = load(checkpoint_name, net, optimiser)
     for grad_step, (x, target) in enumerate(data_generator):
         grad_step += initial_grad_step
@@ -85,7 +86,7 @@ def fit(checkpoint_name, net, optimiser, data_generator, on_save_callback, devic
         loss = F.mse_loss(forecast, torch.tensor(target, dtype=torch.float).to(device))
         loss.backward()
         optimiser.step()
-        print(f'grad_step = {str(grad_step).zfill(6)}, loss = {loss.item():.6f}')
+        #print(f'grad_step = {str(grad_step).zfill(6)}, loss = {loss.item():.6f}')
         if grad_step % 1000 == 0 or (grad_step < 1000 and grad_step % 100 == 0):
             with torch.no_grad():
                 save(checkpoint_name, net, optimiser, grad_step)
@@ -101,7 +102,10 @@ def eval_test(backcast_length, forecast_length, net, norm_constant, test_losses,
     _, forecast = net(torch.tensor(x_test, dtype=torch.float))
     singular_loss = F.mse_loss(forecast, torch.tensor(y_test, dtype=torch.float)).item()
     test_losses.append(singular_loss)
-    p = forecast.detach().numpy()
+    #Juan
+    #p = forecast.detach().numpy()
+    
+    p = forecast.detach().cpu().numpy()
     '''
     subplots = [221, 222, 223, 224]
     plt.figure(1)
@@ -140,7 +144,7 @@ def one_file_training_data(data_dir, file, forecast_length, backcast_length, bat
     normal_signal_x.flatten()
 
     norm_constant = np.max(normal_signal_data)
-    print(norm_constant)
+    #print(norm_constant)
     normal_signal_data = normal_signal_data / norm_constant  # leak to the test set here.
 
     x_train_batch, y = [], []
@@ -158,8 +162,8 @@ def one_file_training_data(data_dir, file, forecast_length, backcast_length, bat
     c = int(len(x_train_batch) * 0.8)
     x_train, y_train = x_train_batch[:c], y[:c]
     x_test, y_test = x_train_batch[c:], y[c:]
-    print(x_train.shape, x_test.shape)
-    print(y_train.shape, y_test.shape)
+    #print(x_train.shape, x_test.shape)
+    #print(y_train.shape, y_test.shape)
     data = data_generator(x_train, y_train, batch_size)
 
     return data, x_test, y_test, norm_constant
@@ -180,7 +184,7 @@ def organise_data(data, data_header, forecast_length, backcast_length, batch_siz
     normal_signal_x.flatten()
 
     norm_constant = np.max(normal_signal_data)
-    print(norm_constant)
+    #print(norm_constant)
     normal_signal_data = normal_signal_data / norm_constant  # leak to the test set here.
 
     x, y = [], []
