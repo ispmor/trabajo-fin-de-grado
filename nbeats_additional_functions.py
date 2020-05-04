@@ -2,6 +2,7 @@ import os
 import wfdb
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 import torch
 from torch.nn import functional as F
@@ -158,10 +159,13 @@ def one_file_training_data(data_dir, file, forecast_length, backcast_length, bat
     if len(x_train_batch) > 30000:
         x_train_batch = x_train_batch[0:int(len(x_train_batch) / 4)]
         y = y[0:int(len(y) / 4)]
+        
+        
 
     c = int(len(x_train_batch) * 0.8)
-    x_train, y_train = x_train_batch[:c], y[:c]
-    x_test, y_test = x_train_batch[c:], y[c:]
+    x_train, x_test, y_train, y_test = train_test_split(x_train_batch, y, test_size=0.005, random_state=17)
+    #x_train, y_train = x_train_batch[:c], y[:c]
+    #x_test, y_test = x_train_batch[c:], y[c:]
     #print(x_train.shape, x_test.shape)
     #print(y_train.shape, y_test.shape)
     data = data_generator(x_train, y_train, batch_size)
@@ -195,8 +199,8 @@ def organise_data(data, data_header, forecast_length, backcast_length, batch_siz
     x = np.array(x)  # [..., 0]
     y = np.array(y)  # [..., 0]
 
-    if len(x) > 30000:
-        x = x[0:int(len(x) / 2)]
-        y = y[0:int(len(y) / 2)]
+    if len(x) > 5000:
+        x = x[0:5000]
+        y = y[0:5000]
 
     return x, y

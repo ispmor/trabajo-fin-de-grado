@@ -45,10 +45,10 @@ class Model:
         min_score = min(scores)
         result = {}
         for c in self.classes:
-            self.scores_norm[c] = (self.scores[c] - min_score) / max_score
+            self.scores_norm[c] = (self.scores[c] - min_score) / (max_score - min_score)
             self.scores_final[c] = 1 - self.scores_norm[c]
             result[c] = 0
-            if self.scores_final[c] > 0.9:
+            if self.scores_final[c] > 0.99:
                 result[c] = 1
 
         return result

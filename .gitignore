@@ -3,3 +3,6 @@ venv/*
 /data/*
 /PhysioNetChallenge2020_Training_CPSC/
 *.js
+.idea/*
+/.idea/*
+/__pycache__/*

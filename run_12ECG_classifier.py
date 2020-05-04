@@ -14,7 +14,14 @@ def run_12ECG_classifier(data,header_data,classes,model):
 
     label = model.predict(data, header_data)
     score = model.scores_final
-    return list(label.values()), list(score.values())
+
+    keys = sorted(label.keys(), reverse=True)
+
+    for key in keys:
+        current_label = np.append(current_label, label[key])
+        current_score = np.append(current_score, score[key])
+
+    return list(current_label), list(current_score)
 
 
 def load_12ECG_model():
