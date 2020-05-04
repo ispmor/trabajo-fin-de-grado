@@ -63,16 +63,17 @@ for folder_name in dirs:
     
     for (_, dirs, files) in os.walk(actual_class_dir):
         iteration = 0
+        difference = 100 #BART -> if the training takes forever pls move this line out of this loop
         for file in files:
             print(file)
             i = 0
-            difference = 100 #BART -> if the training takes forever pls move this line out of this loop
+            
 
             if 'mat' in file:
                 continue
 
             iteration += 1
-            if iteration > 30:
+            if iteration > 30 or difference < threshold:
                 break
 
             data, x_train, y_train, x_test, y_test, norm_constant = naf.one_file_training_data(actual_class_dir, file, forecast_length, backcast_length, batch_size)
